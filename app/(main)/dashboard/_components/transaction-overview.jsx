@@ -177,14 +177,26 @@ export function DashboardOverview({ accounts, transactions }) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => `₹${value.toFixed(2)}`}
+                    formatter={(value) => [`₹${value.toFixed(2)}`, undefined]}
                     contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "var(--radius)",
+                      backgroundColor: "#1f2937",
+                      border: "1px solid #374151",
+                      borderRadius: "8px",
+                      color: "#f9fafb",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)",
+                      padding: "8px 12px",
+                    }}
+                    labelStyle={{
+                      color: "#f9fafb",
+                      fontWeight: "500",
+                    }}
+                    cursor={{ fill: "transparent" }}
+                  />
+                  <Legend 
+                    wrapperStyle={{
+                      color: "#f9fafb",
                     }}
                   />
-                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </div>

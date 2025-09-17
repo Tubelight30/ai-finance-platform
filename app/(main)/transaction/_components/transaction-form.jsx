@@ -160,7 +160,9 @@ export function AddTransactionForm({
           <Input
             type="number"
             step="0.01"
+            min="0"
             placeholder="0.00"
+            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             {...register("amount")}
           />
           {errors.amount && (

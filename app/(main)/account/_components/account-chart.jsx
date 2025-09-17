@@ -127,18 +127,25 @@ export function AccountChart({ transactions }) {
               data={filteredData}
               margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                vertical={false}
+                stroke="hsl(var(--border))"
+                opacity={0.3}
+              />
               <XAxis
                 dataKey="date"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
               />
               <YAxis
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(value) => `₹${value}`}
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
               />
               <Tooltip
                 formatter={(value) => [`₹${value}`, undefined]}
@@ -146,9 +153,19 @@ export function AccountChart({ transactions }) {
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
+                  color: "hsl(var(--popover-foreground))",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                }}
+                labelStyle={{
+                  color: "hsl(var(--popover-foreground))",
+                }}
+                cursor={{ fill: "transparent" }}
+              />
+              <Legend 
+                wrapperStyle={{
+                  color: "hsl(var(--foreground))",
                 }}
               />
-              <Legend />
               <Bar
                 dataKey="income"
                 name="Income"
