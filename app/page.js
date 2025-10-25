@@ -186,7 +186,7 @@ const LandingPage = () => {
                     {testimonialsData[currentTestimonial].role}
                   </p>
                   <blockquote className="text-lg text-gray-700 dark:text-gray-300 italic">
-                    "{testimonialsData[currentTestimonial].quote}"
+                    &ldquo;{testimonialsData[currentTestimonial].quote}&rdquo;
                   </blockquote>
                 </div>
 

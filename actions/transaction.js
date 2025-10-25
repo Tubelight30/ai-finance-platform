@@ -6,8 +6,10 @@ import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import aj from "@/lib/arcjet";
 import { request } from "@arcjet/next";
+import AdaptiveOCRProcessor from "@/lib/ocr/adaptiveOCR";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const adaptiveOCR = new AdaptiveOCRProcessor();
 
 const serializeAmount = (obj) => ({
   ...obj,
@@ -227,10 +229,56 @@ export async function getUserTransactions(query = {}) {
   }
 }
 
-// Scan Receipt
+// Scan Receipt - Enhanced with Adaptive OCR
 export async function scanReceipt(file) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    console.log("Starting adaptive OCR processing...");
+    
+    // Use the new adaptive OCR processor
+    const result = await adaptiveOCR.processReceipt(file, {
+      useCache: true,
+      fileType: file.type
+    });
+
+    // Log processing details for monitoring
+    console.log("OCR Processing completed:", {
+      strategy: result.analysis?.strategy,
+      confidence: result.analysis?.confidence,
+      processingTime: result.analysis?.processingTime,
+      model: result.model,
+      useCase: result.useCase
+    });
+
+    // Return the processed data in the expected format
+    return {
+      amount: result.amount,
+      date: result.date,
+      description: result.description,
+      category: result.suggestedCategory || result.category,
+      merchantName: result.merchantName,
+      // Additional metadata for debugging/monitoring
+      _metadata: {
+        strategy: result.analysis?.strategy,
+        confidence: result.confidenceScore,
+        processingTime: result.analysis?.processingTime,
+        isFallback: result.isFallback,
+        validation: result.validation
+      }
+    };
+
+  } catch (error) {
+    console.error("Error in adaptive OCR processing:", error);
+    
+    // Fallback to original Gemini processing if adaptive OCR fails
+    console.log("Falling back to original Gemini processing...");
+    return await fallbackToOriginalOCR(file);
+  }
+}
+
+// Fallback function - Original Gemini OCR implementation
+async function fallbackToOriginalOCR(file) {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
     // Convert File to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
@@ -279,6 +327,12 @@ export async function scanReceipt(file) {
         description: data.description,
         category: data.category,
         merchantName: data.merchantName,
+        _metadata: {
+          strategy: 'fallback_original',
+          confidence: 0.7,
+          processingTime: Date.now(),
+          isFallback: true
+        }
       };
     } catch (parseError) {
       console.error("Error parsing JSON response:", parseError);
@@ -287,6 +341,50 @@ export async function scanReceipt(file) {
   } catch (error) {
     console.error("Error scanning receipt:", error);
     throw new Error("Failed to scan receipt");
+  }
+}
+
+// Batch Receipt Processing - New function for multiple receipts
+export async function scanBatchReceipts(files) {
+  try {
+    console.log(`Starting batch processing for ${files.length} receipts...`);
+    
+    const startTime = Date.now();
+    const result = await adaptiveOCR.processBatchReceipts(files, {
+      maxConcurrency: 3,
+      useCache: true,
+      startTime
+    });
+
+    console.log("Batch processing completed:", {
+      total: result.total,
+      successful: result.successful.length,
+      failed: result.failed.length,
+      successRate: result.successRate,
+      processingTime: result.processingTime
+    });
+
+    return result;
+
+  } catch (error) {
+    console.error("Error in batch processing:", error);
+    throw new Error("Failed to process receipt batch");
+  }
+}
+
+// Get OCR Performance Metrics - New function for monitoring
+export async function getOCRPerformanceMetrics() {
+  try {
+    return adaptiveOCR.getMetrics();
+  } catch (error) {
+    console.error("Error getting OCR metrics:", error);
+    return {
+      error: "Failed to retrieve metrics",
+      totalProcessed: 0,
+      strategyCounts: {},
+      averageProcessingTime: 0,
+      successRate: 0
+    };
   }
 }
 

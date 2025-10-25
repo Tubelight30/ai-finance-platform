@@ -7,6 +7,20 @@ import { toast } from "sonner";
 import useFetch from "@/hooks/use-fetch";
 import { scanReceipt } from "@/actions/transaction";
 
+// Helper function to get display names for OCR strategies
+function getStrategyDisplayName(strategy) {
+  const strategyNames = {
+    'lightweight': 'Lightweight OCR',
+    'standard': 'Standard OCR',
+    'handwriting': 'Handwriting OCR',
+    'batch': 'Batch OCR',
+    'mixed': 'Mixed Content OCR',
+    'fallback': 'Fallback OCR',
+    'fallback_original': 'Original Gemini OCR'
+  };
+  return strategyNames[strategy] || 'Unknown Strategy';
+}
+
 export function ReceiptScanner({ onScanComplete }) {
   const fileInputRef = useRef(null);
 
@@ -28,7 +42,24 @@ export function ReceiptScanner({ onScanComplete }) {
   useEffect(() => {
     if (scannedData && !scanReceiptLoading) {
       onScanComplete(scannedData);
-      toast.success("Receipt scanned successfully");
+      
+      // Enhanced success message with processing details
+      const metadata = scannedData._metadata;
+      if (metadata) {
+        const strategyName = getStrategyDisplayName(metadata.strategy);
+        const confidence = Math.round((metadata.confidence || 0.8) * 100);
+        
+        toast.success(
+          `Receipt scanned successfully using ${strategyName} (${confidence}% confidence)`,
+          {
+            description: metadata.processingTime ? 
+              `Processing time: ${metadata.processingTime}ms` : 
+              undefined
+          }
+        );
+      } else {
+        toast.success("Receipt scanned successfully");
+      }
     }
   }, [scanReceiptLoading, scannedData]);
 
