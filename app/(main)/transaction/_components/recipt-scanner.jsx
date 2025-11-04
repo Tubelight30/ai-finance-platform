@@ -49,13 +49,19 @@ export function ReceiptScanner({ onScanComplete }) {
         const strategyName = getStrategyDisplayName(metadata.strategy);
         const confidence = Math.round((metadata.confidence || 0.8) * 100);
         
+        const timeLabel = typeof metadata.modelTimeMs === 'number'
+          ? `Model time: ${metadata.modelTimeMs}ms`
+          : (typeof metadata.modelTime === 'number'
+              ? `Model time: ${metadata.modelTime}s`
+              : (typeof metadata.processingTimeMs === 'number'
+                  ? `Processing time: ${metadata.processingTimeMs}ms`
+                  : (typeof metadata.processingTime === 'number'
+                      ? `Processing time: ${metadata.processingTime}s`
+                      : undefined)));
+
         toast.success(
           `Receipt scanned successfully using ${strategyName} (${confidence}% confidence)`,
-          {
-            description: metadata.processingTime ? 
-              `Processing time: ${metadata.processingTime}ms` : 
-              undefined
-          }
+          { description: timeLabel }
         );
       } else {
         toast.success("Receipt scanned successfully");

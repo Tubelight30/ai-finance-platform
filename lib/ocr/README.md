@@ -19,6 +19,34 @@ This implementation provides an intelligent, adaptive OCR system for receipt sca
 - **Mixed Content OCR**: For receipts with both printed and handwritten text
 - **Fallback OCR**: Robust processing for unclear or damaged images
 
+#### Routing decision criteria (from code)
+- **Batch OCR**:
+  - Condition: `textDensity.density > 0.4` AND `complexityScore.complexity === 'high'`
+  - Source: `ImageAnalyzer.determineOCRStrategy`
+
+- **Handwriting OCR**:
+  - Condition: At least 2 of the following are true:
+    - `!lineAnalysis.isConsistent`
+    - `!spacingAnalysis.uniform`
+    - `!strokeAnalysis.consistent`
+  - Source: `ImageAnalyzer.determineOCRStrategy` (`inconsistencyCount >= 2`)
+
+- **Mixed Content OCR**:
+  - Condition: `textDensity.density > 0.3` AND `complexityScore.complexity === 'high'` AND (`!lineAnalysis.isConsistent` OR `!spacingAnalysis.uniform`)
+  - Source: `ImageAnalyzer.determineOCRStrategy`
+
+- **Lightweight OCR**:
+  - Condition: `textDensity.density < 0.1` (and none of the above higher-priority conditions matched)
+  - Source: `ImageAnalyzer.determineOCRStrategy`
+
+- **Standard OCR**:
+  - Condition: Default when none of Batch/Handwriting/Mixed/Lightweight match
+  - Source: `ImageAnalyzer.determineOCRStrategy`
+
+- **Fallback OCR**:
+  - Condition: Any error during routing/processing or analysis, or explicitly requested fallback path
+  - Source: `OCRRouter.processReceipt` catch → `routeToOCR('fallback', ...)` and `AdaptiveOCRProcessor.fallbackProcessing`
+
 ### 3. Performance Optimizations
 - **Intelligent Caching**: Reduces redundant processing for similar images
 - **Batch Processing**: Efficient handling of multiple receipts

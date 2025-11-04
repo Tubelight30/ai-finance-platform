@@ -144,8 +144,18 @@ export function OCRDemo() {
                           </span>
                         </div>
                         <div>
-                          <label className="text-gray-600">Processing Time</label>
-                          <span className="ml-2">{scannedData._metadata.processingTime}ms</span>
+                          <label className="text-gray-600">Model Time</label>
+                          <span className="ml-2">
+                            {typeof scannedData._metadata.modelTimeMs === 'number'
+                              ? `${scannedData._metadata.modelTimeMs}ms`
+                              : (typeof scannedData._metadata.modelTime === 'number'
+                                  ? `${scannedData._metadata.modelTime}s`
+                                  : (typeof scannedData._metadata.processingTimeMs === 'number'
+                                      ? `${scannedData._metadata.processingTimeMs}ms`
+                                      : (typeof scannedData._metadata.processingTime === 'number'
+                                          ? `${scannedData._metadata.processingTime}s`
+                                          : '—')))}
+                          </span>
                         </div>
                         <div>
                           <label className="text-gray-600">Fallback Used</label>
